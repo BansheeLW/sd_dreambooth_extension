@@ -6,6 +6,7 @@ import itertools
 import logging
 import os
 import random
+import json
 import time
 import traceback
 from decimal import Decimal
@@ -734,16 +735,28 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
                                         seed = int(random.randrange(21474836147))
                                     c.seed = seed
                                     g_cuda = torch.Generator(device=accelerator.device).manual_seed(seed)
-                                    s_image = s_pipeline(c.prompt, num_inference_steps=c.steps,
-                                                         guidance_scale=c.scale,
-                                                         negative_prompt=c.negative_prompt,
-                                                         height=args.resolution,
-                                                         width=args.resolution,
-                                                         generator=g_cuda).images[0]
+                                    if len(c.prompt) > 0:
+                                        vec_prompts = json.loads(c.prompt)
+                                        vec_negprompts = json.loads(c.negative_prompt)
+                                        if len(vec_prompts) > 0:
+                                            for idx, v_prompt in enumerate(vec_prompts):
+                                                neg_prompt = c.negative_prompt
+                                                if len(vec_prompts) == len(vec_negprompts):
+                                                    neg_prompt = vec_negprompts[idx]
+                                                s_image = s_pipeline(v_prompt, num_inference_steps=c.steps,
+                                                                     guidance_scale=c.scale,
+                                                                     negative_prompt=neg_prompt,
+                                                                     height=args.resolution,
+                                                                     width=args.resolution,
+                                                                     generator=g_cuda).images[0]
+                                                sample_prompts.append(v_prompt)
+                                                # reset prompt
+                                                c.prompt = vec_prompts[0]
+                                                if len(vec_negprompts) > 0:
+                                                    c.negative_prompt = vec_negprompts[0]
+                                                image_name = db_save_image(s_image,c, seed, custom_name=f"sample_{args.revision}-{ci}")
+                                                samples.append(image_name)
 
-                                    sample_prompts.append(c.prompt)
-                                    image_name = db_save_image(s_image,c, seed, custom_name=f"sample_{args.revision}-{ci}")
-                                    samples.append(image_name)
                                     pbar.update()
                                     ci += 1
                                 for sample in samples:
