@@ -751,10 +751,9 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
                                                                      generator=g_cuda).images[0]
                                                 sample_prompts.append(v_prompt)
                                                 # reset prompt
-                                                c.prompt = vec_prompts[0]
-                                                if len(vec_negprompts) > 0:
-                                                    c.negative_prompt = vec_negprompts[0]
-                                                image_name = db_save_image(s_image,c, seed, custom_name=f"sample_{args.revision}-{ci}")
+                                                c.prompt = v_prompt
+                                                c.negative_prompt = neg_prompt
+                                                image_name = db_save_image(s_image,c, seed, custom_name=f"sample_{args.revision}-{ci}-{idx}")
                                                 samples.append(image_name)
 
                                     pbar.update()
