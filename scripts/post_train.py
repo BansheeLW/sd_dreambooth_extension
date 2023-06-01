@@ -17,10 +17,10 @@ class PostTrainHook:
         """
         if not quque_url:
             # todo 这里要指定aws region和aws account
-            region = "us-east-1"
-            account = "843245141269"
+            region = "us-west-2"
+            account = "022637123599"
             # quque_url格式为：f"https://sqs.{region}.amazonaws.com/{account}/sagemaker-hook"
-            quque_url = f"https://sqs.{region}.amazonaws.com/{account}/sagemaker-hook"
+            quque_url = f"https://sqs.{region}.amazonaws.com/{account}/train_model_job_test"
 
         client = boto3.client('sqs')
         response = client.send_message(QueueUrl=quque_url, MessageBody=self._message)
