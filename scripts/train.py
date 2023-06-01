@@ -9,6 +9,8 @@ from modules import paths
 from dreambooth.db_config import DreamboothConfig
 from scripts.dreambooth import performance_wizard, training_wizard, start_training_from_config, create_model
 from dreambooth.db_concept import Concept
+from scripts.post_train import PostTrainHook
+
 
 def train_dreambooth(api_endpoint, train_args, sd_models_s3uri, db_models_s3uri, lora_models_s3uri, username):
     db_create_new_db_model = train_args['train_dreambooth_settings']['db_create_new_db_model']
@@ -192,6 +194,14 @@ def train_dreambooth(api_endpoint, train_args, sd_models_s3uri, db_models_s3uri,
             s3uri,
             os.path.join(db_model_dir, db_model_name)
         )
+
+        # path: s3uri, db_model_name, "samples"
+        sqs_payload = {
+            "model_name": db_config.model_name,
+            "s3_path": "/".join([s3uri, db_model_name, "samples"])
+        }
+        sqs_message = json.dumps(sqs_payload)
+        PostTrainHook(sqs_message).to_sqs()
 
         if db_config.use_lora:
             if username == '':
