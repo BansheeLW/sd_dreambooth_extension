@@ -22,6 +22,6 @@ class PostTrainHook:
             # quque_url格式为：f"https://sqs.{region}.amazonaws.com/{account}/sagemaker-hook"
             quque_url = f"https://sqs.{region}.amazonaws.com/{account}/train_model_job_test"
 
-        client = boto3.client('sqs', region_name="us-east-2")
+        client = boto3.client('sqs', region_name="us-west-2")
         response = client.send_message(QueueUrl=quque_url, MessageBody=self._message)
         return response
