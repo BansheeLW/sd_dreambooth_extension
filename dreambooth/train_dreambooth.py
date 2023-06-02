@@ -737,7 +737,8 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
                                     g_cuda = torch.Generator(device=accelerator.device).manual_seed(seed)
                                     if len(c.prompt) > 0:
                                         print(vars(c))
-                                        print(c.prompt)
+                                        print(f"{ci}: {vars(c)}")
+                                        print(f"{ci}: {c.prompt}")
                                         vec_prompts = json.loads(c.prompt)
                                         vec_negprompts = json.loads(c.negative_prompt)
                                         if len(vec_prompts) > 0:
@@ -750,7 +751,7 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
                                                                      negative_prompt=neg_prompt,
                                                                      height=args.resolution,
                                                                      width=args.resolution,
-                                                                     generator=g_cuda).images[0]
+                                                                     generator=g_cuda).images
                                                 sample_prompts.append(v_prompt)
                                                 # reset prompt
                                                 c.prompt = v_prompt
