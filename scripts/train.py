@@ -165,25 +165,25 @@ def train_dreambooth(api_endpoint, train_args, sd_models_s3uri, db_models_s3uri,
     print(os.system(f'ls -l {lora_model_dir}'))
 
     try:
-        print('Uploading SD Models...')
-        s3uri = f'{sd_models_s3uri}{username}/'
-        if username == '':
-            s3uri = s3uri[0 : s3uri.rfind('/')] + '/'
-        if db_config.v2:
-            shared.upload_s3files(
-                s3uri,
-                os.path.join(sd_models_dir, db_model_name, f'{db_model_name}_*.yaml')
-            )
-        if db_config.save_safetensors:
-            shared.upload_s3files(
-                s3uri,
-                os.path.join(sd_models_dir, db_model_name, f'{db_model_name}_*.safetensors')
-            )
-        else:
-            shared.upload_s3files(
-                s3uri,
-                os.path.join(sd_models_dir, db_model_name, f'{db_model_name}_*.ckpt')
-            )
+#         print('Uploading SD Models...')
+#         s3uri = f'{sd_models_s3uri}{username}/'
+#         if username == '':
+#             s3uri = s3uri[0 : s3uri.rfind('/')] + '/'
+#         if db_config.v2:
+#             shared.upload_s3files(
+#                 s3uri,
+#                 os.path.join(sd_models_dir, db_model_name, f'{db_model_name}_*.yaml')
+#             )
+#         if db_config.save_safetensors:
+#             shared.upload_s3files(
+#                 s3uri,
+#                 os.path.join(sd_models_dir, db_model_name, f'{db_model_name}_*.safetensors')
+#             )
+#         else:
+#             shared.upload_s3files(
+#                 s3uri,
+#                 os.path.join(sd_models_dir, db_model_name, f'{db_model_name}_*.ckpt')
+#             )
 
         print('Uploading DB Models...')
         if username == '':
@@ -194,6 +194,8 @@ def train_dreambooth(api_endpoint, train_args, sd_models_s3uri, db_models_s3uri,
             s3uri,
             os.path.join(db_model_dir, db_model_name)
         )
+
+        print('---upload_s3folder path---', os.path.join(db_model_dir, db_model_name))
 
         # path: s3uri, db_model_name, "samples"
         sqs_payload = {
