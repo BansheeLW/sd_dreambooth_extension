@@ -746,18 +746,20 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
                                                 neg_prompt = c.negative_prompt
                                                 if len(vec_prompts) == len(vec_negprompts):
                                                     neg_prompt = vec_negprompts[idx]
-                                                s_image = s_pipeline(v_prompt, num_inference_steps=c.steps,
+                                                s_image_list = s_pipeline(v_prompt, num_inference_steps=c.steps,
                                                                      guidance_scale=c.scale,
                                                                      negative_prompt=neg_prompt,
                                                                      height=args.resolution,
                                                                      width=args.resolution,
                                                                      generator=g_cuda).images
+                                                print(f"the length of s_image_list is {len(s_image_list)}")
                                                 sample_prompts.append(v_prompt)
                                                 # reset prompt
                                                 c.prompt = v_prompt
                                                 c.negative_prompt = neg_prompt
-                                                image_name = db_save_image(s_image,c, seed, custom_name=f"sample_{args.revision}-{ci}-{idx}")
-                                                samples.append(image_name)
+                                                for s_image in s_image_list:
+                                                    image_name = db_save_image(s_image,c, seed, custom_name=f"sample_{args.revision}-{ci}-{idx}")
+                                                    samples.append(image_name)
 
                                     pbar.update()
                                     ci += 1
