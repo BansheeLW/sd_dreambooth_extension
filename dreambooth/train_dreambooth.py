@@ -6,7 +6,6 @@ import itertools
 import logging
 import os
 import random
-import json
 import time
 import traceback
 from decimal import Decimal
@@ -39,6 +38,8 @@ from dreambooth.utils import cleanup, unload_system_models, parse_logs, printm, 
 from dreambooth.xattention import optim_to
 from lora_diffusion.lora import save_lora_weight, inject_trainable_lora
 from modules import shared, paths
+import json
+import copy
 
 try:
     cmd_dreambooth_models_path = shared.cmd_opts.dreambooth_models_path
@@ -283,7 +284,7 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
         else:
             if not args.train_unet:
                 unet.requires_grad_(False)
-        
+
 
         # Use 8-bit Adam for lower memory usage or to fine-tune the model in 16GB GPUs
         use_adam = False
@@ -300,7 +301,7 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
 
         if args.use_lora:
             args.learning_rate = args.lora_learning_rate
-        
+
             params_to_optimize = ([
                     {"params": itertools.chain(*unet_lora_params), "lr": args.lora_learning_rate},
                     {"params": itertools.chain(*text_encoder_lora_params), "lr": args.lora_txt_learning_rate},
@@ -312,7 +313,7 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
             params_to_optimize = (
                 itertools.chain(text_encoder.parameters()) if stop_text_percentage != 0 and not args.train_unet else
                 itertools.chain(unet.parameters(), text_encoder.parameters()) if stop_text_percentage != 0 else
-                unet.parameters()                
+                unet.parameters()
             )
         optimizer = optimizer_class(
             params_to_optimize,
@@ -730,37 +731,31 @@ def main(args: DreamboothConfig, use_txt2img: bool = True) -> TrainResult:
                                 for c in prompts:
                                     c.out_dir = os.path.join(args.model_dir, "samples")
                                     c.resolution = (args.resolution, args.resolution)
-                                    seed = int(c.seed)
-                                    if seed is None or seed == '' or seed == -1:
+                                    sample_prompts.append(c.prompt)
+                                    vec_prompts = json.loads(c.prompt)
+                                    vec_negprompts = json.loads(c.negative_prompt)
+                                    for idx, v_prompt in enumerate(vec_prompts):
+                                        neg_prompt = vec_negprompts[idx]
                                         seed = int(random.randrange(21474836147))
-                                    c.seed = seed
-                                    g_cuda = torch.Generator(device=accelerator.device).manual_seed(seed)
-                                    if len(c.prompt) > 0:
-                                        print(vars(c))
-                                        print(f"{ci}: {vars(c)}")
-                                        print(f"{ci}: {c.prompt}")
-                                        vec_prompts = json.loads(c.prompt)
-                                        vec_negprompts = json.loads(c.negative_prompt)
-                                        if len(vec_prompts) > 0:
-                                            for idx, v_prompt in enumerate(vec_prompts):
-                                                neg_prompt = c.negative_prompt
-                                                if len(vec_prompts) == len(vec_negprompts):
-                                                    neg_prompt = vec_negprompts[idx]
-                                                s_image_list = s_pipeline(v_prompt, num_inference_steps=c.steps,
-                                                                     guidance_scale=c.scale,
-                                                                     negative_prompt=neg_prompt,
-                                                                     height=args.resolution,
-                                                                     width=args.resolution,
-                                                                     generator=g_cuda).images
-                                                print(f"the length of s_image_list is {len(s_image_list)}")
-                                                sample_prompts.append(v_prompt)
-                                                # reset prompt
-                                                c.prompt = v_prompt
-                                                c.negative_prompt = neg_prompt
-                                                for s_image in s_image_list:
-                                                    image_name = db_save_image(s_image,c, seed, custom_name=f"sample_{args.revision}-{ci}-{idx}")
-                                                    samples.append(image_name)
-
+                                        g_cuda = torch.Generator(device=accelerator.device).manual_seed(seed)
+                                        s_image = s_pipeline(
+                                            v_prompt,
+                                            num_inference_steps=c.steps,
+                                            guidance_scale=c.scale,
+                                            negative_prompt=neg_prompt,
+                                            height=c.resolution[1],
+                                            width=c.resolution[0],
+                                            generator=g_cuda,
+                                        ).images[0]
+                                        c2 = copy.deepcopy(c)
+                                        c2.prompt = v_prompt
+                                        c2.negative_prompt = neg_prompt
+                                        image_name = db_save_image(
+                                            s_image,
+                                            c2,
+                                            custom_name=f"sample_{args.revision}-{ci}-{idx}",
+                                        )
+                                        samples.append(image_name)
                                     pbar.update()
                                     ci += 1
                                 for sample in samples:

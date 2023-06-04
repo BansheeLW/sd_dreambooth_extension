@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass, asdict
 from typing import Union, List, Tuple
-
+import copy
 
 @dataclass
 class PromptData:
@@ -31,3 +31,10 @@ class PromptData:
         get the json formated string
         """
         return json.dumps(self.__dict__)
+
+    def __deepcopy__(self, pd):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        for k, v in self.__dict__.items():
+            setattr(result, k, copy.deepcopy(v, pd))
+        return result
