@@ -154,7 +154,7 @@ def train_dreambooth(api_endpoint, train_args, sd_models_s3uri, db_models_s3uri,
         cmd_lora_models_path = None
 
     db_model_dir = os.path.dirname(cmd_dreambooth_models_path) if cmd_dreambooth_models_path else paths.models_path
-    db_model_dir = os.path.join(db_model_dir, "dreambooth", "samples")
+    db_model_dir = os.path.join(db_model_dir, "dreambooth")
 
     lora_model_dir = os.path.dirname(cmd_lora_models_path) if cmd_lora_models_path else paths.models_path
     lora_model_dir = os.path.join(lora_model_dir, "lora")
@@ -192,15 +192,15 @@ def train_dreambooth(api_endpoint, train_args, sd_models_s3uri, db_models_s3uri,
             s3uri = f'{db_models_s3uri}{username}/{db_model_name}'
         shared.upload_s3folder(
             s3uri,
-            os.path.join(db_model_dir, db_model_name)
+            os.path.join(db_model_dir, db_model_name, "samples")
         )
 
-        print('---upload_s3folder path---', os.path.join(db_model_dir, db_model_name))
+        print('---upload_s3folder path---', os.path.join(db_model_dir, db_model_name, "samples"))
 
         # path: s3uri, db_model_name, "samples"
         sqs_payload = {
             "model_name": db_config.model_name,
-            "s3_path": "/".join([s3uri, db_model_name, "samples"])
+            "s3_path": "/".join([s3uri])
         }
         sqs_message = json.dumps(sqs_payload)
         PostTrainHook(sqs_message).to_sqs()
