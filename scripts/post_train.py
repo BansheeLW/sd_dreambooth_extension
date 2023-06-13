@@ -28,7 +28,7 @@ class PostTrainHook:
         payload_base64 = base64.b64encode(payload_bytes)
         real_message = {
             "biz_type": 0,
-            "topic": "db_train_completed",
+            "topic": "train_completed",
             "metadata": {},
             "payload": payload_base64.decode('utf-8'),
             "queue_tag": -1,
