@@ -200,12 +200,12 @@ def train_dreambooth(api_endpoint, train_args, sd_models_s3uri, db_models_s3uri,
         # path: s3uri, db_model_name, "samples"
         sqs_payload = {
             "model_name": db_config.model_name,
-            "s3_path": "/".join([s3uri])
+            "s3_path": "/".join([s3uri]) + "/"
         }
         sqs_message = json.dumps(sqs_payload)
         PostTrainHook(sqs_message).to_sqs()
 
-        if db_config.use_lora:
+       """  if db_config.use_lora:
             if username == '':
                 s3uri = f'{lora_models_s3uri}'
             else:
@@ -234,7 +234,7 @@ def train_dreambooth(api_endpoint, train_args, sd_models_s3uri, db_models_s3uri,
         else:
             f2=os.path.join(sd_models_dir, db_model_name, f'{model_file_basename}.ckpt')
             if os.path.exists(f2):
-                shutil.copy(f2,"/opt/ml/model/Stable-diffusion/")
+                shutil.copy(f2,"/opt/ml/model/Stable-diffusion/") """
     except Exception as e:
         traceback.print_exc()
         print(e)
