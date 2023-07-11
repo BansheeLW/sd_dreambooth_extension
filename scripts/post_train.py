@@ -22,7 +22,7 @@ class PostTrainHook:
             region = "us-west-2"
             account = "022637123599"
             # queue_url格式为：f"https://sqs.{region}.amazonaws.com/{account}/sagemaker-hook"
-            queue_url = f"https://sqs.{region}.amazonaws.com/{account}/train_model_job_test"
+            queue_url = f"https://sqs.{region}.amazonaws.com/{account}/aigc_prod"
 
         payload_bytes = self._message.encode('utf-8')
         payload_base64 = base64.b64encode(payload_bytes)
